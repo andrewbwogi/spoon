@@ -13,6 +13,7 @@ import spoon.reflect.declaration.CtTypeParameter;
 import spoon.reflect.path.CtRole;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.reference.CtWildcardReference;
+import spoon.support.visitor.java.JavaReflectionTreeBuilder;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.GenericDeclaration;
@@ -22,8 +23,8 @@ import java.util.Map;
 import java.util.Objects;
 
 public class TypeReferenceRuntimeBuilderContext extends AbstractRuntimeBuilderContext {
-	private CtTypeReference<?> typeReference;
-	private Type type;
+	public CtTypeReference<?> typeReference;
+	public Type type;
 	private Map<String, CtTypeParameter> mapTypeParameters;
 
 	public TypeReferenceRuntimeBuilderContext(Type type, CtTypeReference<?> typeReference) {
@@ -33,21 +34,32 @@ public class TypeReferenceRuntimeBuilderContext extends AbstractRuntimeBuilderCo
 		this.mapTypeParameters = new HashMap<>();
 	}
 
+	private void print(String add, String on){
+		JavaReflectionTreeBuilder.print("TypeReferenceRuntimeBuilderContext",add,on);
+	}
+
 	@Override
 	public void addPackage(CtPackage ctPackage) {
+		print("addPackage(CtPackage ctPackage): " + ctPackage,"on: " + typeReference);
 		typeReference.setPackage(ctPackage.getReference());
 	}
 
 	@Override
 	public void addTypeReference(CtRole role, CtTypeReference<?> ctTypeReference) {
+
+
 		switch (role) {
 		case DECLARING_TYPE:
 			this.typeReference.setDeclaringType(ctTypeReference);
+			print("addTypeReference(CtRole role, CtTypeReference<?> ctTypeReference): " + role + ", " + ctTypeReference,"on: " + typeReference + ", setDeclaringType");
+
 			return;
 		case BOUNDING_TYPE:
 		case SUPER_TYPE:
 			if (typeReference instanceof CtWildcardReference) {
 				((CtWildcardReference) typeReference).setBoundingType(ctTypeReference);
+				print("addTypeReference(CtRole role, CtTypeReference<?> ctTypeReference): " + role + ", " + ctTypeReference,"on: " + typeReference + ", setBoundingType");
+
 			} else {
 				//Strange case?
 				this.getClass();
@@ -55,6 +67,8 @@ public class TypeReferenceRuntimeBuilderContext extends AbstractRuntimeBuilderCo
 			return;
 		case TYPE_ARGUMENT:
 			typeReference.addActualTypeArgument(ctTypeReference);
+			print("addTypeReference(CtRole role, CtTypeReference<?> ctTypeReference): " + role + ", " + ctTypeReference,"on: " + typeReference + ", addActualTypeArgument");
+
 			return;
 		}
 		super.addTypeReference(role, ctTypeReference);
@@ -67,6 +81,8 @@ public class TypeReferenceRuntimeBuilderContext extends AbstractRuntimeBuilderCo
 
 	@Override
 	public void addFormalType(CtTypeParameter parameterRef) {
+		print("addFormalType(CtTypeParameter parameterRef): " + parameterRef,"on: " + typeReference);
+
 		typeReference.addActualTypeArgument(parameterRef.getReference());
 		this.mapTypeParameters.put(parameterRef.getSimpleName(), parameterRef);
 	}

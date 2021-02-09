@@ -16,6 +16,7 @@ import spoon.reflect.declaration.CtParameter;
 import spoon.reflect.declaration.CtTypeParameter;
 import spoon.reflect.path.CtRole;
 import spoon.reflect.reference.CtTypeReference;
+import spoon.support.visitor.java.JavaReflectionTreeBuilder;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Executable;
@@ -24,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ExecutableRuntimeBuilderContext extends AbstractRuntimeBuilderContext {
-	private CtExecutable<?> ctExecutable;
+	public CtExecutable<?> ctExecutable;
 	private Executable executable;
 	private Map<String, CtTypeParameter> mapTypeParameters;
 
@@ -52,9 +53,16 @@ public class ExecutableRuntimeBuilderContext extends AbstractRuntimeBuilderConte
 		ctExecutable.addParameter(ctParameter);
 	}
 
+	private void print(String add, String on){
+		JavaReflectionTreeBuilder.print("ExecutableRuntimeBuilderContext",add,on);
+
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public void addTypeReference(CtRole role, CtTypeReference<?> typeReference) {
+
+		print("addTypeReference(CtRole role, CtTypeReference<?> typeReference): " + role + ", " + typeReference,"on: " + ctExecutable);
 		switch (role) {
 		case THROWN:
 			ctExecutable.addThrownType((CtTypeReference) typeReference);

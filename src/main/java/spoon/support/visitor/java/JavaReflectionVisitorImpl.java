@@ -31,13 +31,27 @@ class JavaReflectionVisitorImpl implements JavaReflectionVisitor {
 	public void visitPackage(Package aPackage) {
 	}
 
+	private void printVisit(String visit, Object... args){
+
+		System.out.print("JavaReflectionVisitorImpl - " + visit + ": ");
+		for(Object arg : args){
+			System.out.print(arg.toString() + ", ");
+		}
+		System.out.println();
+
+
+	}
+
 	@Override
 	public <T> void visitClass(Class<T> clazz) {
+		printVisit("visitClass(Class<T> clazz)", clazz);
+
 		if (clazz.getPackage() != null) {
 			clazz.getPackage();
 		}
 		try {
 			for (TypeVariable<Class<T>> generic : clazz.getTypeParameters()) {
+				//System.out.println("typeparam: " + generic);
 				visitTypeParameter(generic);
 			}
 		} catch (NoClassDefFoundError ignore) {
@@ -104,6 +118,7 @@ class JavaReflectionVisitorImpl implements JavaReflectionVisitor {
 	}
 
 	protected final <T> void visitType(Class<T> aClass) {
+		printVisit("visitType(Class<T> aClass)", aClass);
 		if (aClass.isAnnotation()) {
 			visitAnnotationClass((Class<Annotation>) aClass);
 		} else if (aClass.isInterface()) {
@@ -300,6 +315,8 @@ class JavaReflectionVisitorImpl implements JavaReflectionVisitor {
 
 	@Override
 	public <T> void visitConstructor(Constructor<T> constructor) {
+		printVisit("visitConstructor(Constructor<T> constructor)", constructor);
+
 		for (Annotation annotation : constructor.getDeclaredAnnotations()) {
 			visitAnnotation(annotation);
 		}
@@ -330,10 +347,13 @@ class JavaReflectionVisitorImpl implements JavaReflectionVisitor {
 
 	@Override
 	public final void visitMethod(RtMethod method) {
+
 		this.visitMethod(method, null);
 	}
 
 	protected void visitMethod(RtMethod method, Annotation parent) {
+		printVisit("visitMethod(RtMethod method, Annotation parent)", method, parent);
+
 		for (Annotation annotation : method.getDeclaredAnnotations()) {
 			if (parent == null || !annotation.annotationType().equals(parent.annotationType())) {
 				visitAnnotation(annotation);
@@ -376,6 +396,8 @@ class JavaReflectionVisitorImpl implements JavaReflectionVisitor {
 
 	@Override
 	public void visitParameter(RtParameter parameter) {
+		printVisit("visitParameter(RtParameter parameter)",parameter);
+
 		for (Annotation annotation : parameter.getDeclaredAnnotations()) {
 			visitAnnotation(annotation);
 		}
@@ -386,7 +408,10 @@ class JavaReflectionVisitorImpl implements JavaReflectionVisitor {
 
 	@Override
 	public <T extends GenericDeclaration> void visitTypeParameter(TypeVariable<T> parameter) {
+		printVisit("visitTypeParameter(TypeVariable<T> parameter)",parameter);
+
 		for (Type type : parameter.getBounds()) {
+			//System.out.println("a loop");
 			if (type == Object.class) {
 				// we want to ignore Object to avoid <T extends Object>
 				continue;
@@ -397,19 +422,25 @@ class JavaReflectionVisitorImpl implements JavaReflectionVisitor {
 
 	@Override
 	public <T extends GenericDeclaration> void visitTypeParameterReference(CtRole role, TypeVariable<T> parameter) {
+		printVisit("visitTypeParameterReference(CtRole role, TypeVariable<T> parameter)",role,parameter);
+
 		for (Type type : parameter.getBounds()) {
 			if (type == Object.class) {
 				// we bypass Object.class: if a generic type extends Object we don't put it in the model, it's implicit
 				// we do the same thing in ReferenceBuilder
 				continue;
 			}
+			// enter 6x
 			visitTypeReference(CtRole.SUPER_TYPE, type);
 		}
 	}
 
 	@Override
 	public final void visitTypeReference(CtRole role, Type type) {
+		printVisit("visitTypeReference(CtRole role, Type type)",role,type);
+
 		if (type instanceof TypeVariable) {
+			//System.out.println("in type instanceof TypeVariable");
 			this.visitTypeParameterReference(role, (TypeVariable<?>) type);
 			return;
 		}
@@ -439,6 +470,8 @@ class JavaReflectionVisitorImpl implements JavaReflectionVisitor {
 
 	@Override
 	public void visitTypeReference(CtRole role, ParameterizedType type) {
+		printVisit("visitTypeReference(CtRole role, ParameterizedType type)",role,type);
+
 		Type rawType = type.getRawType();
 
 		if (!(rawType instanceof Class)) {
@@ -448,9 +481,11 @@ class JavaReflectionVisitorImpl implements JavaReflectionVisitor {
 		Class<?> classRaw = (Class<?>) rawType;
 
 		if (classRaw.getPackage() != null) {
+			//System.out.println("visitPackage from visitTypeReference");
 			visitPackage(classRaw.getPackage());
 		}
 		if (classRaw.getEnclosingClass() != null) {
+			//System.out.println("visitTypeReference from visitTypeReference");
 			visitTypeReference(CtRole.DECLARING_TYPE, classRaw.getEnclosingClass());
 		}
 
@@ -461,6 +496,8 @@ class JavaReflectionVisitorImpl implements JavaReflectionVisitor {
 
 	@Override
 	public void visitTypeReference(CtRole role, WildcardType type) {
+		printVisit("visitTypeReference(CtRole role, WildcardType type)",role,type);
+
 		if (type.getUpperBounds() != null && type.getUpperBounds().length > 0 && !type.getUpperBounds()[0].equals(Object.class)) {
 			for (Type upper : type.getUpperBounds()) {
 				visitTypeReference(CtRole.BOUNDING_TYPE, upper);
@@ -478,6 +515,8 @@ class JavaReflectionVisitorImpl implements JavaReflectionVisitor {
 
 	@Override
 	public <T> void visitTypeReference(CtRole role, Class<T> clazz) {
+		printVisit("visitTypeReference(CtRole role, Class<T> clazz)",role,clazz);
+
 		if (clazz.getPackage() != null && clazz.getEnclosingClass() == null) {
 			visitPackage(clazz.getPackage());
 		}

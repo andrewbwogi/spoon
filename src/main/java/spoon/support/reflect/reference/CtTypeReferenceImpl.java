@@ -495,6 +495,8 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements CtTypeRef
 
 	@Override
 	public <C extends CtActualTypeContainer> C addActualTypeArgument(CtTypeReference<?> actualTypeArgument) {
+		if(simplename.equals("Object"))
+			System.out.println("shouldnt be here");
 		if (actualTypeArgument == null) {
 			return (C) this;
 		}

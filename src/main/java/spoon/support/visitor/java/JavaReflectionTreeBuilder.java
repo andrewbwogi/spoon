@@ -53,10 +53,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Builds Spoon model from class file using the reflection api. The Spoon model
@@ -76,11 +73,36 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 	}
 
 	private void enter(RuntimeBuilderContext context) {
+/*
+		System.out.print("enter: ");
+		if(context instanceof TypeReferenceRuntimeBuilderContext)
+			System.out.println(((TypeReferenceRuntimeBuilderContext)context).typeReference);
+		if(context instanceof TypeRuntimeBuilderContext)
+			System.out.println(((TypeRuntimeBuilderContext)context).type);
+		if(context instanceof PackageRuntimeBuilderContext)
+			System.out.println(((PackageRuntimeBuilderContext)context).ctPackage);
+		if(context instanceof ExecutableRuntimeBuilderContext)
+			System.out.println(((ExecutableRuntimeBuilderContext)context).ctExecutable);
+
+ */
 		contexts.push(context);
 	}
 
 	private RuntimeBuilderContext exit() {
-		return contexts.pop();
+		RuntimeBuilderContext context = contexts.pop();
+/*
+		System.out.print("exit: ");
+		if(context instanceof TypeReferenceRuntimeBuilderContext)
+			System.out.println(((TypeReferenceRuntimeBuilderContext)context).typeReference);
+		if(context instanceof TypeRuntimeBuilderContext)
+			System.out.println(((TypeRuntimeBuilderContext)context).type);
+		if(context instanceof PackageRuntimeBuilderContext)
+			System.out.println(((PackageRuntimeBuilderContext)context).ctPackage);
+		if(context instanceof ExecutableRuntimeBuilderContext)
+			System.out.println(((ExecutableRuntimeBuilderContext)context).ctExecutable);
+*/
+
+		return context;
 	}
 
 	/** transforms a java.lang.Class into a CtType (ie a shadow type in Spoon's parlance) */
@@ -106,6 +128,7 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 			} else if (clazz.isEnum()) {
 				visitEnum(clazz);
 			} else {
+				//System.out.println("size of contexts before visitClass(clazz): " + contexts.size());
 				visitClass(clazz);
 			}
 			exit();
@@ -128,21 +151,46 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 		contexts.peek().addPackage(ctPackage);
 	}
 
+	public static void print(String builder, String add, String on){
+/*
+		System.out.println("------ " + builder + " ------");
+		System.out.println(add);
+		System.out.println(on);
+
+*/
+	}
+
+	private void printVisit(String visit, Object... args){
+
+		System.out.print("JavaReflectionTreeBuilder - " + visit + ": ");
+		for(Object arg : args){
+			System.out.print(arg.toString() + ", ");
+		}
+		System.out.println();
+
+
+	}
+
 	@Override
 	public <T> void visitClass(Class<T> clazz) {
+		printVisit("visitClass(Class<T> clazz)", clazz);
 		final CtClass ctClass = factory.Core().createClass();
 		ctClass.setSimpleName(clazz.getSimpleName());
 		setModifier(ctClass, clazz.getModifiers(), clazz.getDeclaringClass());
+		//System.out.println("after setModifier");
 
 		enter(new TypeRuntimeBuilderContext(clazz, ctClass) {
 			@Override
 			public void addConstructor(CtConstructor<?> ctConstructor) {
+				print("TypeRuntimeBuilderContext","addConstructor(CtConstructor<?> ctConstructor): " + ctConstructor,"on: " + ctClass);
 				ctClass.addConstructor(ctConstructor);
 			}
 			@Override
 			public void addTypeReference(CtRole role, CtTypeReference<?> typeReference) {
 				switch (role) {
 				case SUPER_TYPE:
+					print("TypeRuntimeBuilderContext","addTypeReference(CtRole role, CtTypeReference<?> typeReference): " + role + ", " + typeReference,"on: " + ctClass);
+
 					ctClass.setSuperclass(typeReference);
 					return;
 				}
@@ -249,6 +297,8 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 
 	@Override
 	public <T> void visitConstructor(Constructor<T> constructor) {
+		printVisit("visitConstructor(Constructor<T> constructor)", constructor);
+
 		final CtConstructor<Object> ctConstructor = factory.Core().createConstructor();
 		ctConstructor.setBody(factory.Core().createBlock());
 		setModifier(ctConstructor, constructor.getModifiers(), constructor.getDeclaringClass());
@@ -262,6 +312,7 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 
 	@Override
 	public void visitMethod(RtMethod method, Annotation parent) {
+		printVisit("visitMethod(RtMethod method, Annotation parent)", method, parent);
 		final CtMethod<Object> ctMethod = factory.Core().createMethod();
 		ctMethod.setSimpleName(method.getName());
 		/**
@@ -322,6 +373,7 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 
 	@Override
 	public void visitParameter(RtParameter parameter) {
+		printVisit("visitParameter(RtParameter parameter)",parameter);
 		final CtParameter ctParameter = factory.Core().createParameter();
 		ctParameter.setSimpleName(parameter.getName());
 		ctParameter.setVarArgs(parameter.isVarArgs());
@@ -339,10 +391,12 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 
 	@Override
 	public <T extends GenericDeclaration> void visitTypeParameter(TypeVariable<T> parameter) {
+		printVisit("visitTypeParameter(TypeVariable<T> parameter)",parameter);
 		GenericDeclaration genericDeclaration = parameter.getGenericDeclaration();
 		for (RuntimeBuilderContext context : contexts) {
 			CtTypeParameter typeParameter = context.getTypeParameter(genericDeclaration, parameter.getName());
 			if (typeParameter != null) {
+				//System.out.println("adding clone: " + typeParameter);
 				contexts.peek().addFormalType(typeParameter.clone());
 				return;
 			}
@@ -355,11 +409,16 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 			@SuppressWarnings("incomplete-switch")
 			@Override
 			public void addTypeReference(CtRole role, CtTypeReference<?> typeReference) {
+				//System.out.println(typeReference);
 				switch (role) {
 				case SUPER_TYPE:
 					if (typeParameter.getSuperclass() != null) {
+						//System.out.println("typeParameter.getSuperclass() != null");
+						print("TypeRuntimeBuilderContext","addTypeReference(CtRole role, CtTypeReference<?> typeReference): " + role + ", " + typeReference,"on: " + typeParameter + ", setSuperclass\n" + "intersectionTypeReferenceWithBounds: " + typeParameter.getFactory().createIntersectionTypeReferenceWithBounds(Arrays.asList(typeParameter.getSuperclass(), typeReference)));
 						typeParameter.setSuperclass(typeParameter.getFactory().createIntersectionTypeReferenceWithBounds(Arrays.asList(typeParameter.getSuperclass(), typeReference)));
 					} else {
+						print("TypeRuntimeBuilderContext","addTypeReference(CtRole role, CtTypeReference<?> typeReference): " + role + ", " + typeReference,"on: " + typeParameter + ", setSuperclass");
+
 						typeParameter.setSuperclass(typeReference);
 					}
 					return;
@@ -375,47 +434,78 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 
 	@Override
 	public <T extends GenericDeclaration> void visitTypeParameterReference(CtRole role, TypeVariable<T> parameter) {
+		printVisit("visitTypeParameterReference(CtRole role, TypeVariable<T> parameter)",role,parameter);
 		final CtTypeParameterReference typeParameterReference = factory.Core().createTypeParameterReference();
+		// enter x5
 		typeParameterReference.setSimpleName(parameter.getName());
 
 		RuntimeBuilderContext runtimeBuilderContext = new TypeReferenceRuntimeBuilderContext(parameter, typeParameterReference);
 		if (contexts.contains(runtimeBuilderContext)) {
+			//System.out.println("contexts.contains(runtimeBuilderContext)");
+			Iterator<RuntimeBuilderContext> id = contexts.iterator();
+			while(id.hasNext()){
+				RuntimeBuilderContext r = id.next();
+				if (r.equals(runtimeBuilderContext)){
+					System.out.println("*********** EQUALITY ***********");
+					System.out.println(parameter);
+					System.out.println(typeParameterReference);
+					System.out.println(((TypeReferenceRuntimeBuilderContext)r).type);
+					System.out.println(((TypeReferenceRuntimeBuilderContext)r).typeReference);
+				}
+			}
 			// we are in the case of a loop
 			exit();
 			enter(new TypeReferenceRuntimeBuilderContext(Object.class, factory.Type().OBJECT));
+			System.out.println("FROM Object");
 			return;
 		}
 
+		// second time: enter x9
 		GenericDeclaration genericDeclaration = parameter.getGenericDeclaration();
 		for (RuntimeBuilderContext context : contexts) {
 			CtTypeParameter typeParameter = context.getTypeParameter(genericDeclaration, parameter.getName());
 			if (typeParameter != null) {
+				//System.out.println("in context: " + context);
+				//System.out.println("addTypeReference: " + typeParameter.getReference() + ", role: " + role);
 				contexts.peek().addTypeReference(role, typeParameter.getReference());
+				System.out.println("FROM typeParameter != null");
 				return;
 			}
 		}
 
 		enter(runtimeBuilderContext);
+		// enter x6
+		System.out.println("FROM super");
 		super.visitTypeParameterReference(role, parameter);
 		exit();
 
+		//System.out.println("**************** contexts content ****************");
+		int i = 0;
+		for (RuntimeBuilderContext elem : contexts) {
+			//System.out.println("index "+ i++ + " "+ elem);
+		}
 		contexts.peek().addTypeReference(role, typeParameterReference);
 	}
 
 	@Override
 	public void visitTypeReference(CtRole role, ParameterizedType type) {
+		printVisit("visitTypeReference(CtRole role, ParameterizedType type)",role,type);
+
 		final CtTypeReference<?> ctTypeReference = factory.Core().createTypeReference();
 		ctTypeReference.setSimpleName(((Class) type.getRawType()).getSimpleName());
 
 		RuntimeBuilderContext context = new TypeReferenceRuntimeBuilderContext(type, ctTypeReference) {
 
+
 			@Override
 			public void addType(CtType<?> aType) {
+				System.out.println("TROUBLE");
 				//TODO check if it is needed
 				this.getClass();
 			}
 		};
 
+		//System.out.println("in visitTypeReference");
 		enter(context);
 		super.visitTypeReference(role, type);
 
@@ -429,12 +519,15 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 		exit();
 
 		if (contextStillExisting) {
+			//System.out.println("contextStillExisting");
 			contexts.peek().addTypeReference(role, ctTypeReference);
 		}
 	}
 
 	@Override
 	public void visitTypeReference(CtRole role, WildcardType type) {
+		printVisit("visitTypeReference(CtRole role, WildcardType type)",role,type);
+
 		final CtWildcardReference wildcard = factory.Core().createWildcardReference();
 		//looks like type.getUpperBounds() always returns single value array with Object.class
 		//so we cannot distinguish between <? extends Object> and <?>, which must be upper==true too!
@@ -473,6 +566,8 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 
 	@Override
 	public <T> void visitTypeReference(CtRole role, Class<T> clazz) {
+		printVisit("visitTypeReference(CtRole role, Class<T> clazz)",role,clazz);
+
 		final CtTypeReference<Object> typeReference = factory.Core().createTypeReference();
 		typeReference.setSimpleName(clazz.getSimpleName());
 

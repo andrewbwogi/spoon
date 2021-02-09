@@ -10,19 +10,26 @@ package spoon.support.visitor.java.internal;
 import spoon.reflect.declaration.CtAnnotation;
 import spoon.reflect.declaration.CtPackage;
 import spoon.reflect.declaration.CtType;
+import spoon.support.visitor.java.JavaReflectionTreeBuilder;
 
 import java.lang.annotation.Annotation;
 
 public class PackageRuntimeBuilderContext extends AbstractRuntimeBuilderContext {
-	private CtPackage ctPackage;
+	public CtPackage ctPackage;
 
 	public PackageRuntimeBuilderContext(CtPackage ctPackage) {
 		super(ctPackage);
 		this.ctPackage = ctPackage;
 	}
 
+	private void print(String add, String on){
+		JavaReflectionTreeBuilder.print("PackageRuntimeBuilderContext",add,on);
+
+	}
+
 	@Override
 	public void addType(CtType<?> aType) {
+		print("addType(CtType<?> aType): " + aType,"on: " + ctPackage);
 		ctPackage.addType(aType);
 	}
 
