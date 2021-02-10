@@ -450,8 +450,10 @@ public abstract class CtElementImpl implements CtElement, Serializable {
 	@Override
 	public Factory getFactory() {
 		if (this.factory == null) {
+			//System.out.println("factory is null");
 			return DEFAULT_FACTORY;
 		}
+		//System.out.println("factory is not null");
 		return factory;
 	}
 

@@ -611,6 +611,7 @@ public class Launcher implements SpoonAPI {
 		// we don't have to set the source classpath
 		if (jsapActualArgs.contains("source-classpath")) {
 			comp.setSourceClasspath(jsapActualArgs.getString("source-classpath").split(System.getProperty("path.separator")));
+			System.out.println(comp.getSourceClasspath());
 		}
 
 		env.debugMessage("destination: " + comp.getBinaryOutputDirectory());

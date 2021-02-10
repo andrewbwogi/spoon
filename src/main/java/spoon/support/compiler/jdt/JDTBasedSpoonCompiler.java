@@ -366,6 +366,10 @@ public class JDTBasedSpoonCompiler implements spoon.SpoonModelBuilder {
 	 * @return true if the model has been built without errors
 	 */
 	protected boolean buildUnitsAndModel(JDTBuilder jdtBuilder, SpoonFolder sourcesFolder, String[] classpath, String debugMessagePrefix) {
+		System.out.println("CLASSPATHS in buildUnitsAndModel");
+		/*for(String cl : classpath){
+			System.out.println(cl);
+		}*/
 		CompilationUnitDeclaration[] units = buildUnits(jdtBuilder, sourcesFolder, classpath, debugMessagePrefix);
 
 		// here we build the model in the template factory

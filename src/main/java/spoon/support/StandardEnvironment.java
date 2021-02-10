@@ -436,6 +436,7 @@ private transient  ClassLoader inputClassloader;
 
 	@Override
 	public ClassLoader getInputClassLoader() {
+		System.out.println("getInputClassLoader");
 		if (classloader != null) {
 			return classloader;
 		}

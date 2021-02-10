@@ -434,7 +434,7 @@ class JavaReflectionVisitorImpl implements JavaReflectionVisitor {
 			visitTypeReference(CtRole.SUPER_TYPE, type);
 		}
 	}
-
+//
 	@Override
 	public final void visitTypeReference(CtRole role, Type type) {
 		printVisit("visitTypeReference(CtRole role, Type type)",role,type);

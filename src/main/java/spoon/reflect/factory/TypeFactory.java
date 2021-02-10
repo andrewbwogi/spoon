@@ -561,6 +561,9 @@ public class TypeFactory extends SubFactory {
 			if (shadowClass == null) {
 				CtType<T> newShadowClass;
 				try {
+					T t = (T) new Object();
+					//System.out.println("cl is type: "+cl.getClass());
+					//System.out.println("T in TypeFactory is: " + t.getClass());
 					newShadowClass = new JavaReflectionTreeBuilder(getShadowFactory()).scan((Class<T>) cl);
 				} catch (Throwable e) {
 					Launcher.LOGGER.warn("cannot create shadow class: {}", cl.getName(), e);
