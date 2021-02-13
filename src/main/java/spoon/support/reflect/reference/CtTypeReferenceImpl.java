@@ -39,6 +39,8 @@ import spoon.support.visitor.ClassTypingContext;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -170,6 +172,15 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements CtTypeRef
 				// creating a classloader on the fly is not the most efficient
 				// but it decreases the amount of state to maintain
 				// since getActualClass is only used in rare cases, that's OK.
+				if(qualifiedName.equals("spoon.Launcher")){
+					System.out.println("qualified: " + qualifiedName);
+					//System.out.println(((Class<T>) classLoader.loadClass(qualifiedName)).toString());
+					System.out.println(classLoader.getClass());
+					for(URL u : ((URLClassLoader)classLoader).getURLs()){
+						System.out.println(u.getPath());
+					}
+					System.out.println("*******");
+				}
 				return (Class<T>) classLoader.loadClass(qualifiedName);
 			} catch (Throwable e) {
 				throw new SpoonClassNotFoundException("cannot load class: " + getQualifiedName(), e);
