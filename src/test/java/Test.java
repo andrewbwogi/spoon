@@ -1,4 +1,5 @@
 
+//public class Test<B extends Test<C, C>, C extends Test<C, C>> {
 
 public class Test<B extends Test<B, C>, C> {
 

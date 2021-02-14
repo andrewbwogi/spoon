@@ -87,6 +87,7 @@ public class ObjectGenerics {
         Collection<String> classpath = Files.readAllLines(classpathFile);
         launcher.getEnvironment().setSourceClasspath(classpath.toArray(new String[0]));*/
 
+        launcher.getEnvironment().setNoClasspath(false);
         CtModel model = launcher.buildModel();
         List<CtInvocation> list = model.getRootPackage().filterChildren((CtInvocation i)->i.getExecutable().getSimpleName().equals("doSomething2")).list();
         CtExecutableReference<?> executable = list.get(0).getExecutable();
@@ -125,10 +126,21 @@ public class ObjectGenerics {
             System.out.println("----" + ((CtElement)elem).getClass() + "----");
             System.out.println(((CtElement)elem).toString());
         }*/
-        System.out.println("class of object: "+affectedFactory.get().OBJECT.getClass());
-        System.out.println("name of class: "+affectedFactory.get().OBJECT.getSimpleName());
+
+//        System.out.println("class of object: "+affectedFactory.get().OBJECT.getClass());
+//        System.out.println("name of class: "+affectedFactory.get().OBJECT.getSimpleName());
 
 
+        List<CtTypeReference> list2 = model.getRootPackage().filterChildren((CtTypeReference i)->i.getSimpleName().equals("Test")).list();
+        System.out.println("ooooooooooooooooooooooooooooooooo");
+        System.out.println(list2.size());
+        System.out.println(list2.get(0));
+        CtTypeReference test = list2.get(0);
+        System.out.println(test.getTypeDeclaration());
+        System.out.println(executable);
+        System.out.println(executable.getDeclaration());
+        System.out.println(executable.getDeclaringType().getTypeDeclaration());
+        System.out.println(executable.getDeclaration());
         System.out.println(e);
 
 

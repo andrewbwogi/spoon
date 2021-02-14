@@ -491,6 +491,21 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 	public void visitTypeReference(CtRole role, ParameterizedType type) {
 		printVisit("visitTypeReference(CtRole role, ParameterizedType type)",role,type);
 
+/*
+		if(role == CtRole.SUPER_TYPE){
+			Type[] generics = type.getActualTypeArguments();
+			TypeVariable<?> parameter = (TypeVariable<?>) generics[0];
+			final CtTypeParameterReference typeParameterReference = factory.Core().createTypeParameterReference();
+			typeParameterReference.setSimpleName(parameter.getName());
+			RuntimeBuilderContext runtimeBuilderContext = new TypeReferenceRuntimeBuilderContext(parameter, typeParameterReference);
+			if (contexts.contains(runtimeBuilderContext)) {
+
+				// we are in the case of a loop
+				exit();
+				return;
+			}
+		}*/
+
 		final CtTypeReference<?> ctTypeReference = factory.Core().createTypeReference();
 		ctTypeReference.setSimpleName(((Class) type.getRawType()).getSimpleName());
 
