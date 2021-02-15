@@ -373,6 +373,8 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 		contexts.peek().addFormalType(typeParameter);
 	}
 
+	private final CtTypeReference TEMPORARY = factory.Type().createReference("Temporary");
+
 	@Override
 	public <T extends GenericDeclaration> void visitTypeParameterReference(CtRole role, TypeVariable<T> parameter) {
 		final CtTypeParameterReference typeParameterReference = factory.Core().createTypeParameterReference();
@@ -381,6 +383,7 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 		RuntimeBuilderContext runtimeBuilderContext = new TypeReferenceRuntimeBuilderContext(parameter, typeParameterReference);
 		if (contexts.contains(runtimeBuilderContext)) {
 			// we are in the case of a loop
+			System.out.println("LLLOOP");
 			exit();
 			enter(new TypeReferenceRuntimeBuilderContext(Object.class, factory.Type().OBJECT));
 			return;
@@ -404,6 +407,21 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 
 	@Override
 	public void visitTypeReference(CtRole role, ParameterizedType type) {
+		/*
+		Type[] generics = type.getActualTypeArguments();
+		if(role == CtRole.SUPER_TYPE && generics.length > 0 && generics[0] instanceof TypeVariable){
+			TypeVariable parameter = (TypeVariable) generics[0];
+			final CtTypeParameterReference typeParameterReference = factory.Core().createTypeParameterReference();
+			typeParameterReference.setSimpleName(parameter.getName());
+			RuntimeBuilderContext runtimeBuilderContext = new TypeReferenceRuntimeBuilderContext(parameter, typeParameterReference);
+			if (contexts.contains(runtimeBuilderContext)) {
+
+				// we are in the case of a loop
+				return;
+			}
+
+		}*/
+
 		final CtTypeReference<?> ctTypeReference = factory.Core().createTypeReference();
 		ctTypeReference.setSimpleName(((Class) type.getRawType()).getSimpleName());
 
