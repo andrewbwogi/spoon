@@ -381,6 +381,7 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 		RuntimeBuilderContext runtimeBuilderContext = new TypeReferenceRuntimeBuilderContext(parameter, typeParameterReference);
 		if (contexts.contains(runtimeBuilderContext)) {
 			// we are in the case of a loop
+			System.out.println("LLLOOP");
 			exit();
 			enter(new TypeReferenceRuntimeBuilderContext(Object.class, factory.Type().OBJECT));
 			return;
@@ -404,6 +405,19 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 
 	@Override
 	public void visitTypeReference(CtRole role, ParameterizedType type) {
+		Type[] generics = type.getActualTypeArguments();
+		if(role == CtRole.SUPER_TYPE && generics.length > 0 && generics[0] instanceof TypeVariable){
+			TypeVariable parameter = (TypeVariable) generics[0];
+			final CtTypeParameterReference typeParameterReference = factory.Core().createTypeParameterReference();
+			typeParameterReference.setSimpleName(parameter.getName());
+			RuntimeBuilderContext runtimeBuilderContext = new TypeReferenceRuntimeBuilderContext(parameter, typeParameterReference);
+			if (contexts.contains(runtimeBuilderContext)) {
+
+				// we are in the case of a loop
+				return;
+			}
+
+		}
 		final CtTypeReference<?> ctTypeReference = factory.Core().createTypeReference();
 		ctTypeReference.setSimpleName(((Class) type.getRawType()).getSimpleName());
 
@@ -417,6 +431,7 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 		};
 
 		enter(context);
+
 		super.visitTypeReference(role, type);
 
 		// in case of a loop we have replaced a context:
@@ -440,6 +455,9 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 		//so we cannot distinguish between <? extends Object> and <?>, which must be upper==true too!
 		wildcard.setUpper((type.getLowerBounds() != null && type.getLowerBounds().length > 0) == false);
 
+		if(checkLoop(type)){
+			return;
+		}
 		enter(new TypeReferenceRuntimeBuilderContext(type, wildcard));
 		super.visitTypeReference(role, type);
 		exit();
@@ -447,7 +465,20 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 		contexts.peek().addTypeReference(role, wildcard);
 	}
 
+	private boolean checkLoop(WildcardType type){
+		for (Type lower : type.getLowerBounds()) {
+			if(lower instanceof TypeVariable){
+				final CtTypeParameterReference typeParameterReference = factory.Core().createTypeParameterReference();
+				typeParameterReference.setSimpleName(((TypeVariable)lower).getName());
+				RuntimeBuilderContext runtimeBuilderContext = new TypeReferenceRuntimeBuilderContext(lower, typeParameterReference);
+				if (contexts.contains(runtimeBuilderContext)) {
+					// we are in the case of a loop
+					return true;
+				}
+			}
+		}return false;
 
+	}
 
 	@Override
 	public <T> void visitArrayReference(CtRole role, final Type typeArray) {
