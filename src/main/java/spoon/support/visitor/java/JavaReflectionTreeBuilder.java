@@ -379,6 +379,7 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 		typeParameterReference.setSimpleName(parameter.getName());
 
 		RuntimeBuilderContext runtimeBuilderContext = new TypeReferenceRuntimeBuilderContext(parameter, typeParameterReference);
+		/*
 		if (contexts.contains(runtimeBuilderContext)) {
 			// we are in the case of a loop
 			System.out.println("LLLOOP");
@@ -386,6 +387,8 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 			enter(new TypeReferenceRuntimeBuilderContext(Object.class, factory.Type().OBJECT));
 			return;
 		}
+
+		 */
 
 		GenericDeclaration genericDeclaration = parameter.getGenericDeclaration();
 		for (RuntimeBuilderContext context : contexts) {
@@ -406,7 +409,7 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 	@Override
 	public void visitTypeReference(CtRole role, ParameterizedType type) {
 		Type[] generics = type.getActualTypeArguments();
-		if(role == CtRole.SUPER_TYPE && generics.length > 0 && generics[0] instanceof TypeVariable){
+		/*if(role == CtRole.SUPER_TYPE && generics.length > 0 && generics[0] instanceof TypeVariable){
 			TypeVariable parameter = (TypeVariable) generics[0];
 			final CtTypeParameterReference typeParameterReference = factory.Core().createTypeParameterReference();
 			typeParameterReference.setSimpleName(parameter.getName());
@@ -417,7 +420,25 @@ public class JavaReflectionTreeBuilder extends JavaReflectionVisitorImpl {
 				return;
 			}
 
+		}*/
+
+		if(role == CtRole.SUPER_TYPE && generics.length > 0){
+			for(Type t : generics) {
+				if(t instanceof TypeVariable) {
+					TypeVariable parameter = (TypeVariable) t;
+					CtTypeParameterReference typeParameterReference = factory.Core().createTypeParameterReference();
+					typeParameterReference.setSimpleName(parameter.getName());
+					RuntimeBuilderContext runtimeBuilderContext = new TypeReferenceRuntimeBuilderContext(parameter, typeParameterReference);
+					if (contexts.contains(runtimeBuilderContext)) {
+
+						// we are in the case of a loop
+						return;
+					}
+				}
+			}
+
 		}
+
 		final CtTypeReference<?> ctTypeReference = factory.Core().createTypeReference();
 		ctTypeReference.setSimpleName(((Class) type.getRawType()).getSimpleName());
 

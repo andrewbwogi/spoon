@@ -441,6 +441,9 @@ class JavaReflectionVisitorImpl implements JavaReflectionVisitor {
 	public void visitTypeReference(CtRole role, ParameterizedType type) {
 		Type rawType = type.getRawType();
 
+		if(role == CtRole.SUPER_TYPE && type.toString().equals("java.util.stream.BaseStream<T, S>")){
+			System.out.println();
+		}
 		if (!(rawType instanceof Class)) {
 			throw new UnsupportedOperationException("Rawtype of the parameterized type should be a class.");
 		}
