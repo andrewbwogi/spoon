@@ -40,7 +40,19 @@
   </properties> 
 
   <dependencies>
-    <dependency>
+
+      <!-- https://mvnrepository.com/artifact/org.apache.directory.fortress/fortress-realm-proxy -->
+      <dependency>
+          <groupId>org.apache.directory.fortress</groupId>
+          <artifactId>fortress-realm-proxy</artifactId>
+          <version>2.0.5</version>
+          <scope>provided</scope>
+      </dependency>
+
+
+
+
+      <dependency>
       <groupId>org.eclipse.jdt</groupId>
       <artifactId>org.eclipse.jdt.core</artifactId>
       <version>3.24.0</version>

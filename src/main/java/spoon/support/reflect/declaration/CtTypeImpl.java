@@ -82,6 +82,7 @@ public abstract class CtTypeImpl<T> extends CtNamedElementImpl implements CtType
 	List<CtTypeMember> typeMembers = emptyList();
 
 	public CtTypeImpl() {
+		System.out.println("new type");
 	}
 
 	@Override
