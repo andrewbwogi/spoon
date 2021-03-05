@@ -59,9 +59,14 @@ public class ObjectGenerics {
 
     @Test
     public void featurequestion() throws ClassNotFoundException, MalformedURLException {
-        String classpath = "/home/andrewb/Desktop/spoon/class/classes5/";
+        //String classpath = "/home/andrewb/Desktop/spoon/class/classes5/";
+        //String classpath = "/home/andrewb/Spoon/spoon5/spoon/src/test/resources/";
+        String classpath = "/home/andrewb/Spoon/spoon5/spoon/src/test/java/";
+
+
         Launcher launcher = new Launcher();
-        launcher.addInputResource("/home/andrewb/Desktop/spoon/class/B.java");
+        //launcher.addInputResource("/home/andrewb/Desktop/spoon/class/B.java");
+        launcher.addInputResource("/home/andrewb/Spoon/spoon5/spoon/src/test/resources/LauncherUser.java");
         //launcher.addInputResource("/home/andrewb/Desktop/spoon/class/classes5/File.java");
         //launcher.addInputResource("/home/andrewb/Desktop/spoon/class/classes5/java/io/File.java");
         //launcher.addInputResource("/home/andrewb/Desktop/spoon/class/classes5/javax/swing/Icon.java");
@@ -100,10 +105,12 @@ public class ObjectGenerics {
 
         ChildFirstUrlClassLoader childFirstUrlClassLoader = new ChildFirstUrlClassLoader(urls,Thread.currentThread().getContextClassLoader());
         URLClassLoader standardClassloader = new URLClassLoader(urls,Thread.currentThread().getContextClassLoader());
+        URLClassLoader standardClassloaderNullParent = new URLClassLoader(urls,null);
+
         ParentNonURLClassLoader parentNonURLClassLoader = new ParentNonURLClassLoader(urlList);
 
         ClassLoader parentLastURLClassLoader = new ParentLastURLClassLoader(urlList);
-        launcher.getEnvironment().setInputClassLoader(standardClassloader);
+        launcher.getEnvironment().setInputClassLoader(standardClassloaderNullParent);
 
 
 
